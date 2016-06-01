@@ -1,7 +1,10 @@
 package chip8
 
 //Struct for the Main Chip8 System
-import "fmt"
+import (
+	"fmt"
+	"io/ioutil"
+)
 
 type Chip8 struct {
 	//Current Op Code
@@ -14,8 +17,8 @@ type Chip8 struct {
 	V [16]byte
 
 	//Index register + program counter,
-	index          uint16
-	programcounter uint16
+	index uint16
+	pc    uint16
 
 	/* System Memory Map
 	0x000-0x1FF - Chip 8 interpreter (contains font set in emu)
@@ -38,6 +41,40 @@ type Chip8 struct {
 	key [16]byte
 }
 
+// Initialize registers and memory once
 func (self *Chip8) Init() {
 	fmt.Printf("Chip 8 Initalising...\n")
+
+	self.pc = 0x200 // Program counter starts at 0x200, the space of memory after the interpreter
+	self.opcode = 0 // Reset current opcode
+	self.index = 0  // Reset index register
+	self.sp = 0     // Reset stack pointer
+}
+
+//Read file in curent dir into memory
+func (self *Chip8) LoadGame(filename string) {
+	rom, _ := ioutil.ReadFile(filename)
+	rom_length := len(rom)
+	if rom_length > 0 {
+		fmt.Printf("Rom Length = %d\n", rom_length)
+	}
+
+	//If room to store ROM in RAM
+	if (4096 - 512) > rom_length {
+		for i := 0; i < rom_length; i++ {
+			self.memory[i+512] = rom[i]
+		}
+	}
+
+	fmt.Printf("Rom %s loaded into memory\n", filename)
+}
+
+//Tick to load next emulation cycle
+func (self *Chip8) EmulateCycle() {
+	// Fetch Opcode
+	// Decode Opcode
+	// Execute Opcode
+
+	// Update timers
+
 }
