@@ -1,10 +1,25 @@
 package main
 
 import (
+	// "fmt"
 	"github.com/bomer/chip8/chip8"
 )
 
 var myChip8 chip8.Chip8
+
+//Temporarily draw straight to terminal, replce with a OPEN GL draw later. Pref with goMobile package.
+func drawGraphics() {
+	//y loop, 32 scan lines,x 64 pixels in each scan line
+	for y := 0; y < 32; y++ {
+		for x := 0; x < 64; x++ {
+			if myChip8.Gfx[(y*64)+x] == 0 {
+				//Black pixel
+			} else {
+				// White pixel
+			}
+		}
+	}
+}
 
 func main() {
 
@@ -26,7 +41,7 @@ func main() {
 
 		// If the draw flag is set, update the screen
 		// if(myChip8.drawFlag)
-		// drawGraphics()
+		drawGraphics()
 
 		// Store key press state (Press and Release)
 		// myChip8.setKeys()
