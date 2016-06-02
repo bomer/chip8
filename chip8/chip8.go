@@ -80,9 +80,50 @@ func (self *Chip8) EmulateCycle() {
 	//Bitwise, add padding to end of first byte and append second byte to end
 	self.opcode = (b1 << 8) | b2
 
-	fmt.Printf("OpCode = %02X\n", self.opcode)
-
+	fmt.Printf("OpCode = %#02x\n", self.opcode)
 	// Decode Opcode
+	switch self.opcode & 0xF000 {
+	case 0xA000: // ANNN: Sets I to the address NNN
+		// Execute opcode
+		self.index = self.opcode & 0x0FFF
+		self.pc += 2
+		break
+
+	//1 to 7, jump, call and skip instructions
+	case 0x1000: // 0x1NNN: Jumps to address NNN
+		self.pc = self.opcode & 0x0FFF
+		break
+	case 0x2000: // 0x2NNN: Calls subroutine at NNN.
+		self.stack[self.sp] = self.pc  // Store current address in stack
+		self.sp++                      // Increment stack pointer
+		self.pc = self.opcode & 0x0FFF // Set the program counter to the address at NNN
+		break
+	case 0x3000: // 0x3XNN: Skips the next instruction if VX equals NN
+		if uint16(self.V[(self.opcode&0x0F00)>>8]) == self.opcode&0x00FF {
+			self.pc += 4
+		} else {
+			self.pc += 2
+		}
+		break
+	case 0x4000: // 0x4XNN: Skips the next instruction if VX doesn't equal NN.
+		if uint16(self.V[(self.opcode&0x0F00)>>8]) != self.opcode&0x00FF {
+			self.pc += 4
+		} else {
+			self.pc += 2
+		}
+	case 0x5000: // 0x5XY0: Skips the next instruction if VX equals VY.
+		if uint16(self.V[(self.opcode&0x0F00)>>8]) != uint16(self.V[self.opcode&0x0F0]>>4) {
+			self.pc += 4
+		} else {
+			self.pc += 2
+		}
+
+	default:
+		fmt.Println("Unknown Opcode!")
+		break
+
+	}
+
 	// Execute Opcode
 
 	// Update timers
