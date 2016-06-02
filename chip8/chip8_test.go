@@ -30,7 +30,7 @@ func TestOpCode1NNN(t *testing.T) {
 	myChip8.Memory[513] = 0x26
 	myChip8.EmulateCycle()
 
-	fmt.Println("PC=== %s", myChip8.Pc)
+	// fmt.Println("PC=== %s", myChip8.Pc)
 	if myChip8.Pc != 550 {
 		t.Error("Did not start in the correct Program counter")
 	}
@@ -39,5 +39,25 @@ func TestOpCode1NNN(t *testing.T) {
 	if myChip8.Pc != 552 {
 		t.Error("Did not move the Program counter correctly")
 	}
+
+}
+
+func TestOpCode2NNN(t *testing.T) {
+
+	Prep()
+	//Set instructions to, 1, Move to, and 0x0226, pos 552
+	myChip8.Memory[512] = 0x22
+	myChip8.Memory[513] = 0x26
+	myChip8.EmulateCycle()
+
+	fmt.Println("SP=== %s", myChip8.Sp)
+	// if myChip8.Pc != 550 {
+		t.Error("Did not start in the correct Program counter")
+	}
+	// myChip8.EmulateCycle()
+
+	// if myChip8.Pc != 552 {
+		// t.Error("Did not move the Program counter correctly")
+	// }
 
 }

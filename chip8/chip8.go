@@ -24,7 +24,7 @@ type Chip8 struct {
 	Pc     uint16 //Program Counter
 	Opcode uint16 //Current Op Code
 	index  uint16 //Index Register
-	sp     uint16 //Stack Position
+	Sp     uint16 //Stack Position
 
 	//GPU Buffer
 	Gfx [64 * 32]byte
@@ -44,12 +44,12 @@ type Chip8 struct {
 func (self *Chip8) Init() {
 	fmt.Printf("Chip 8 Initalising...\n")
 
-	self.Pc = 0x200 // Program counter starts at 0x200, the space of Memory after the interpreter
+	self.Pc = 0x200 // Program counter starts at 0x200, the Space of Memory after the interpreter
 	self.Opcode = 0 // Reset current Opcode
 	self.index = 0  // Reset index register
-	self.sp = 0     // Reset stack pointer
+	self.Sp = 0     // Reset stack pointer
 
-	// Clear display
+	// Clear diSplay
 
 }
 
@@ -94,8 +94,8 @@ func (self *Chip8) EmulateCycle() {
 		self.Pc = self.Opcode & 0x0FFF
 		break
 	case 0x2000: // 0x2NNN: Calls subroutine at NNN.
-		self.stack[self.sp] = self.Pc  // Store current address in stack
-		self.sp++                      // Increment stack pointer
+		self.stack[self.Sp] = self.Pc  // Store current address in stack
+		self.Sp++                      // Increment stack pointer
 		self.Pc = self.Opcode & 0x0FFF // Set the program counter to the address at NNN
 		break
 	case 0x3000: // 0x3XNN: Skips the next instruction if VX equals NN
