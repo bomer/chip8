@@ -58,7 +58,7 @@ func (self *Chip8) LoadGame(filename string) {
 	rom, _ := ioutil.ReadFile(filename)
 	rom_length := len(rom)
 	if rom_length > 0 {
-		fmt.Printf("Rom Length = %d\n", rom_length)
+		// fmt.Printf("Rom Length = %d\n", rom_length)
 	}
 
 	//If room to store ROM in RAM
@@ -68,7 +68,7 @@ func (self *Chip8) LoadGame(filename string) {
 		}
 	}
 
-	fmt.Printf("Rom %s loaded into Memory\n", filename)
+	// fmt.Printf("Rom %s loaded into Memory\n", filename)
 }
 
 //Tick to load next emulation cycle
