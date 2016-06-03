@@ -49,6 +49,10 @@ func (self *Chip8) Init() {
 	self.index = 0  // Reset index register
 	self.Sp = 0     // Reset stack pointer
 
+	for x := 0; x < 16; x++ {
+		self.V[x] = 0
+	}
+
 	// Clear diSplay
 
 }
@@ -112,7 +116,12 @@ func (self *Chip8) EmulateCycle() {
 			self.Pc += 2
 		}
 	case 0x5000: // 0x5XY0: Skips the next instruction if VX equals VY.
-		if uint16(self.V[(self.Opcode&0x0F00)>>8]) != uint16(self.V[self.Opcode&0x0F0]>>4) {
+		x := (self.Opcode & 0x0F00) >> 8
+		y := (self.Opcode & 0x00F0) >> 4
+		// fmt.Printf("x = %02x and y= %02x", x, y)
+		// fmt.Printf("V0 = %02x v1= %02x", self.V[x], self.V[y])
+
+		if uint16(self.V[x]) == uint16(self.V[y]) {
 			self.Pc += 4
 		} else {
 			self.Pc += 2

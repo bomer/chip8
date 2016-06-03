@@ -85,3 +85,63 @@ func TestOpCode3XNN(t *testing.T) {
 		t.Error("Did not Update the Stack Position correctly")
 	}
 }
+
+func TestOpCode4XNN(t *testing.T) {
+	Prep()
+	if myChip8.Sp != 0 {
+		t.Error("Did not start in the correct Stack Position")
+	}
+
+	// Success Case, does not match so  progress 4
+	myChip8.V[0] = 0x02
+	myChip8.Memory[512] = 0x40
+	myChip8.Memory[513] = 0xff
+	myChip8.EmulateCycle()
+
+	fmt.Printf("pc = %02x", myChip8.Pc)
+	if myChip8.Pc != 0x204 { //516
+		t.Error("Did not Update the program counter correctly")
+	}
+
+	// Success Case, does not match so  progress 4
+	myChip8.Pc = 512
+	myChip8.Memory[513] = 0x02
+	myChip8.EmulateCycle()
+
+	fmt.Printf("pc = %02x", myChip8.Pc)
+	if myChip8.Pc != 0x202 { //514
+		t.Error("Did not Update the program counter correctly")
+	}
+}
+
+// 0x5XY0: Skips the next instruction if VX equals VY.
+func TestOpCode5XY0(t *testing.T) {
+	Prep()
+	if myChip8.Sp != 0 {
+		t.Error("Did not start in the correct program counter")
+	}
+
+	// Success Case, v0 and v1 are both the same memory.
+	myChip8.V[0] = 0x02
+	myChip8.V[1] = 0x02
+	myChip8.Memory[512] = 0x50
+	myChip8.Memory[513] = 0x11
+	myChip8.EmulateCycle()
+
+	fmt.Printf("pc = %02x", myChip8.Pc)
+	if myChip8.Pc != 0x204 { //516
+		t.Error("Did not Update the program counter correctly")
+	}
+
+	//Fail Case - Values are not equal
+	myChip8.Pc = 512
+	myChip8.V[0] = 0x02
+	myChip8.V[1] = 0x03
+
+	myChip8.EmulateCycle()
+
+	fmt.Printf("pc = %02x", myChip8.Pc)
+	if myChip8.Pc != 0x202 { //514
+		t.Error("Did not Update the program counter correctly")
+	}
+}
