@@ -28,6 +28,7 @@ func main() {
 	// setupInput()
 
 	// Initialize the Chip8 system and load the game into the memory
+	fmt.Printf("Chip 8 Initalising...\n")
 	myChip8.Init()
 	// Doesnt exist yet
 	myChip8.LoadGame("pong.c8")

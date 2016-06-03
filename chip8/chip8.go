@@ -23,18 +23,19 @@ type Chip8 struct {
 
 	Pc     uint16 //Program Counter
 	Opcode uint16 //Current Op Code
-	index  uint16 //Index Register
-	Sp     uint16 //Stack Position
+	Index  uint16 //Index Register
+	Sp     uint16 //Stack Pointer
 
 	//GPU Buffer
-	Gfx [64 * 32]byte
+	Gfx       [64 * 32]byte
+	Draw_flag bool
 
 	//Sound Variables
 	delay_timer byte
 	sound_timer byte
 
-	//Stack Position
-	stack [16]uint16
+	//Stack
+	Stack [16]uint16
 
 	//Keyboard
 	key [16]byte
@@ -42,18 +43,19 @@ type Chip8 struct {
 
 // Initialize registers and Memory once
 func (self *Chip8) Init() {
-	fmt.Printf("Chip 8 Initalising...\n")
-
 	self.Pc = 0x200 // Program counter starts at 0x200, the Space of Memory after the interpreter
 	self.Opcode = 0 // Reset current Opcode
-	self.index = 0  // Reset index register
+	self.Index = 0  // Reset index register
 	self.Sp = 0     // Reset stack pointer
 
 	for x := 0; x < 16; x++ {
 		self.V[x] = 0
 	}
 
-	// Clear diSplay
+	// Clear display
+	for i := 0; i < 64*32; i++ {
+		self.Gfx[i] = 0
+	}
 
 }
 
@@ -83,13 +85,38 @@ func (self *Chip8) EmulateCycle() {
 
 	//Bitwise, add padding to end of first byte and append second byte to end
 	self.Opcode = (b1 << 8) | b2
-
-	fmt.Printf("OpCode = %#02x\n", self.Opcode)
 	// Decode Opcode
+
+	// 0x00E0 and 0x000E We have to do first because Golang seems to truncate 0x0000 into 0x00
+	switch self.Opcode {
+	case 0xE0: // 0x00E0: Clears the screen
+		for i := 0; i < 64*32; i++ {
+			self.Gfx[i] = 0
+		}
+		self.Draw_flag = true
+		self.Pc += 2
+		break
+
+	case 0x0E: // 0x00EE: Returns from subroutine
+		self.Sp--                     // 16 levels of stack, decrease stack pointer to prevent overwrite
+		self.Pc = self.Stack[self.Sp] // Put the stored return address from the stack back into the program counter
+		self.Pc += 2                  // Don't forget to increase the program counter!
+		break
+
+	}
+
 	switch self.Opcode & 0xF000 {
+
+	case 0xE000: // 0x00E0: Clears the screen
+		for i := 0; i < 64*32; i++ {
+			self.Gfx[i] = 0
+		}
+		self.Draw_flag = true
+		self.Pc += 2
+		break
 	case 0xA000: // ANNN: Sets I to the address NNN
 		// Execute Opcode
-		self.index = self.Opcode & 0x0FFF
+		self.Index = self.Opcode & 0x0FFF
 		self.Pc += 2
 		break
 
@@ -98,7 +125,7 @@ func (self *Chip8) EmulateCycle() {
 		self.Pc = self.Opcode & 0x0FFF
 		break
 	case 0x2000: // 0x2NNN: Calls subroutine at NNN.
-		self.stack[self.Sp] = self.Pc  // Store current address in stack
+		self.Stack[self.Sp] = self.Pc  // Store current address in stack
 		self.Sp++                      // Increment stack pointer
 		self.Pc = self.Opcode & 0x0FFF // Set the program counter to the address at NNN
 		break
@@ -128,7 +155,9 @@ func (self *Chip8) EmulateCycle() {
 		}
 
 	default:
-		fmt.Println("Unknown Opcode!")
+		if self.Opcode != 0xE0 && self.Opcode != 0x0E {
+			fmt.Println("Unknown Opcode!")
+		}
 		break
 
 	}
