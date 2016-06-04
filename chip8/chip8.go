@@ -165,5 +165,15 @@ func (self *Chip8) EmulateCycle() {
 	// Execute Opcode
 
 	// Update timers
+	if self.delay_timer > 0 {
+		self.delay_timer--
+	}
 
+	if self.sound_timer > 0 {
+		if self.sound_timer == 1 {
+			// fmt.Printf("BEEP!\n")
+
+		}
+		self.sound_timer--
+	}
 }
