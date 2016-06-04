@@ -142,6 +142,7 @@ func (self *Chip8) EmulateCycle() {
 		} else {
 			self.Pc += 2
 		}
+		break
 	case 0x5000: // 0x5XY0: Skips the next instruction if VX equals VY.
 		x := (self.Opcode & 0x0F00) >> 8
 		y := (self.Opcode & 0x00F0) >> 4
@@ -153,6 +154,13 @@ func (self *Chip8) EmulateCycle() {
 		} else {
 			self.Pc += 2
 		}
+		break
+	case 0x6000: //6XNN	Sets VX to NN.
+		x := (self.Opcode & 0x0F00) >> 8
+		NN := byte(self.Opcode & 0x00FF)
+		self.V[x] = NN
+		self.Pc += 2
+		break
 
 	default:
 		if self.Opcode != 0xE0 && self.Opcode != 0x0E {
@@ -161,8 +169,6 @@ func (self *Chip8) EmulateCycle() {
 		break
 
 	}
-
-	// Execute Opcode
 
 	// Update timers
 	if self.delay_timer > 0 {

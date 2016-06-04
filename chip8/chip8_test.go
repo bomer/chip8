@@ -202,3 +202,28 @@ func TestOpCode5XY0(t *testing.T) {
 		t.Error("Did not Update the program counter correctly")
 	}
 }
+
+//0x6XNN: Sets VX to NN.
+func TestOpCode6XNN(t *testing.T) {
+	Prep()
+
+	//ensure valid starting state
+	if myChip8.V[1] != 0 { //514
+		t.Error("Did not init CPU Registers correctly")
+	}
+	fmt.Printf("v1 = %X", myChip8.V[1])
+	// Success Case, v1 and v1 are both the same memory.
+	myChip8.Memory[512] = 0x61
+	myChip8.Memory[513] = 0xaa
+	myChip8.EmulateCycle()
+
+	fmt.Printf("v1 = %X", myChip8.V[1])
+
+	if myChip8.V[1] != 0xaa { //514
+		t.Error("Did not set CPU Register V1 correctly")
+	}
+	if myChip8.Pc != 0x202 {
+		t.Error("Did not reduce the Program Counter correctly")
+	}
+
+}
