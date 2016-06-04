@@ -168,6 +168,41 @@ func (self *Chip8) EmulateCycle() {
 		self.V[x] += NN
 		self.Pc += 2
 		break
+
+		//0X8000 - 8 CASES
+		/*
+			8XY0	Sets VX to the value of VY.
+			8XY1	Sets VX to VX or VY.
+			8XY2	Sets VX to VX and VY.
+			8XY3	Sets VX to VX xor VY.
+			8XY4	Adds VY to VX. VF is set to 1 when there's a carry, and to 0 when there isn't.
+		*/
+
+	case 0x8000:
+		switch self.Opcode & 0x000F { //	8XY0 Sets VX to the value of VY.
+		case 0x0000: // 0x8XY0: Sets VX to the value of VY
+			self.V[self.Opcode&0x0F00>>8] = self.V[self.Opcode&0x00F0>>4]
+			self.Pc += 2
+			break
+		case 0x0001: // 0x8XY0: Sets VX to the value of VY
+			self.V[self.Opcode&0x0F00>>8] |= self.V[self.Opcode&0x00F0>>4]
+			self.Pc += 2
+			break
+
+		case 0x0002: // 0x8XY0: Sets VX to VX and VY.
+			self.V[self.Opcode&0x0F00>>8] &= self.V[self.Opcode&0x00F0>>4]
+			self.Pc += 2
+			break
+
+		case 0x0003: // 0x8XY3:	Sets VX to VX xor VY.
+			self.V[self.Opcode&0x0F00>>8] ^= self.V[self.Opcode&0x00F0>>4]
+			self.Pc += 2
+			break
+		case 0x0004: // 0x8XY4: Adds VY to VX. VF is set to 1 when there's a carry, and to 0 when there isn't.
+			self.V[self.Opcode&0x0F00>>8] = self.V[self.Opcode&0x00F0>>4]
+			self.Pc += 2
+			break
+		}
 	default:
 		if self.Opcode != 0xE0 && self.Opcode != 0x0E {
 			fmt.Println("Unknown Opcode!")

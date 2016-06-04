@@ -256,3 +256,77 @@ func TestOpCode7XNN(t *testing.T) {
 		t.Error("Did not set CPU Register V1 correctly")
 	}
 }
+
+//0x8XY0 Sets VX to the value of VY.
+func TestOpCode8XY0(t *testing.T) {
+	Prep()
+
+	//Postive case, test settings v0 to v1, 1 to 2.
+	myChip8.V[0] = 0x01
+	myChip8.V[1] = 0x02
+
+	// Success Case, v1 and v1 are both the same memory.
+	myChip8.Memory[512] = 0x80
+	myChip8.Memory[513] = 0x10
+	myChip8.EmulateCycle()
+
+	if myChip8.V[0] != 0x02 {
+		t.Error("Failed to set VY to VX")
+	}
+}
+
+//0x8XY1  Sets VX to VX or VY.
+func TestOpCode8XY1(t *testing.T) {
+	Prep()
+
+	//Postive case, test settings v0 to v1, 1 to 2.
+	myChip8.V[0] = 0x01
+	myChip8.V[1] = 0x05
+
+	// Success Case, v1 and v1 are both the same memory.
+	myChip8.Memory[512] = 0x80
+	myChip8.Memory[513] = 0x11
+	myChip8.EmulateCycle()
+
+	if myChip8.V[0] != 0x05 {
+		t.Error("Failed to set VY to VX")
+	}
+}
+
+//8XY2	Sets VX to VX and VY.
+
+func TestOpCode8XY2(t *testing.T) {
+	Prep()
+
+	//Postive case, test settings v0 to v1, 1 to 2.
+	myChip8.V[0] = 0x01
+	myChip8.V[1] = 0x05
+
+	// Success Case, v1 and v1 are both the same memory.
+	myChip8.Memory[512] = 0x80
+	myChip8.Memory[513] = 0x12
+	myChip8.EmulateCycle()
+
+	if myChip8.V[0] != 0x01 {
+		t.Error("Failed to set VY to VX")
+	}
+}
+
+//8XY2	Sets VX to VX xor VY.
+
+func TestOpCode8XY3(t *testing.T) {
+	Prep()
+
+	//Postive case, test settings v0 to v1, 1 to 2.
+	myChip8.V[0] = 0x01
+	myChip8.V[1] = 0x05
+
+	// Success Case, v1 and v1 are both the same memory.
+	myChip8.Memory[512] = 0x80
+	myChip8.Memory[513] = 0x13
+	myChip8.EmulateCycle()
+
+	if myChip8.V[0] != 0x04 {
+		t.Error("Failed to set VY to VX")
+	}
+}
