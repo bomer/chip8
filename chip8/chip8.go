@@ -86,6 +86,7 @@ func (self *Chip8) EmulateCycle() {
 	//Bitwise, add padding to end of first byte and append second byte to end
 	self.Opcode = (b1 << 8) | b2
 	// Decode Opcode
+	// fmt.Printf("Processing Op Code %02x\n", self.Opcode)
 
 	// 0x00E0 and 0x000E We have to do first because Golang seems to truncate 0x0000 into 0x00
 	switch self.Opcode {
@@ -161,7 +162,12 @@ func (self *Chip8) EmulateCycle() {
 		self.V[x] = NN
 		self.Pc += 2
 		break
-
+	case 0x7000: //0x7XNN	Adds NN to VX.
+		x := (self.Opcode & 0xF00) >> 8
+		NN := byte(self.Opcode & 0x00FF)
+		self.V[x] += NN
+		self.Pc += 2
+		break
 	default:
 		if self.Opcode != 0xE0 && self.Opcode != 0x0E {
 			fmt.Println("Unknown Opcode!")

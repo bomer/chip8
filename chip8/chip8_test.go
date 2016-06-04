@@ -211,13 +211,13 @@ func TestOpCode6XNN(t *testing.T) {
 	if myChip8.V[1] != 0 { //514
 		t.Error("Did not init CPU Registers correctly")
 	}
-	fmt.Printf("v1 = %X", myChip8.V[1])
+	// fmt.Printf("v1 = %X", myChip8.V[1])
 	// Success Case, v1 and v1 are both the same memory.
 	myChip8.Memory[512] = 0x61
 	myChip8.Memory[513] = 0xaa
 	myChip8.EmulateCycle()
 
-	fmt.Printf("v1 = %X", myChip8.V[1])
+	// fmt.Printf("v1 = %X", myChip8.V[1])
 
 	if myChip8.V[1] != 0xaa { //514
 		t.Error("Did not set CPU Register V1 correctly")
@@ -226,4 +226,33 @@ func TestOpCode6XNN(t *testing.T) {
 		t.Error("Did not reduce the Program Counter correctly")
 	}
 
+}
+
+//0x7XNN	Adds NN to VX.
+func TestOpCode7XNN(t *testing.T) {
+	Prep()
+
+	myChip8.V[1] = 0xaa
+	//ensure valid starting state 170 + 1
+	if myChip8.V[1] != 0xaa { //514
+		t.Error("Did not init CPU Registers correctly")
+	}
+	// Success Case, v1 and v1 are both the same memory.
+	myChip8.Memory[512] = 0x71
+	myChip8.Memory[513] = 0x01
+	myChip8.EmulateCycle()
+
+	if myChip8.V[1] != 0xab { //171
+		t.Error("Did not set CPU Register V1 correctly")
+	}
+	// Second succes state  - ab + 30 = db
+	myChip8.Memory[514] = 0x71
+	myChip8.Memory[515] = 0x30 //
+	myChip8.EmulateCycle()
+
+	// fmt.Printf("v1 = %X\n", myChip8.V[1])
+
+	if myChip8.V[1] != 0xdb { //
+		t.Error("Did not set CPU Register V1 correctly")
+	}
 }
