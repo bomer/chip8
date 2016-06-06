@@ -330,3 +330,55 @@ func TestOpCode8XY3(t *testing.T) {
 		t.Error("Failed to set VY to VX")
 	}
 }
+
+// 0x8XY4: Adds VY to VX. VF is set to 1 when there's a carry, and to 0 when there isn't.
+// carr if if second mumber is greater than 255 - first
+func TestOpCode8XY4(t *testing.T) {
+	Prep()
+
+	myChip8.Memory[512] = 0x80
+	myChip8.Memory[513] = 0x14
+	// positive eg, 60 + 250, is 250 > (255 - 65 = 200) , YES = carry
+	myChip8.V[0] = 60
+	myChip8.V[1] = 200
+	myChip8.EmulateCycle()
+	// fmt.Printf("v0 = %d", myChip8.V[0])
+	if myChip8.V[0] != 0x04 {
+		t.Error("Failed to add VY to VX")
+	}
+	if myChip8.V[0xf] != 1 {
+		t.Error("Failed to add VY to VX")
+	}
+	if myChip8.Pc != 514 {
+		t.Error("Failed to update program counter")
+	}
+
+	//negative, 54 + 200, is 200 > (255-50=205), no
+	myChip8.Pc = 512
+	myChip8.V[0] = 54
+	myChip8.V[1] = 200
+	myChip8.EmulateCycle()
+	if myChip8.V[0] != 0xfe {
+		t.Error("Failed to add VY to VX")
+	}
+	if myChip8.V[0xf] != 0 {
+		t.Error("Failed to add VY to VX")
+	}
+	if myChip8.Pc != 514 {
+		t.Error("Failed to update program counter")
+	}
+	//Max, 255 + 255, is 255 > (255-255=0), yes
+	myChip8.Pc = 512
+	myChip8.V[0] = 0xff
+	myChip8.V[1] = 0xff
+	myChip8.EmulateCycle()
+	if myChip8.V[0] != 0xfe {
+		t.Error("Failed to add VY to VX")
+	}
+	if myChip8.V[0xf] != 1 {
+		t.Error("Failed to add VY to VX")
+	}
+	if myChip8.Pc != 514 {
+		t.Error("Failed to update program counter")
+	}
+}

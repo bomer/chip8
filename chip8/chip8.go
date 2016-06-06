@@ -199,7 +199,14 @@ func (self *Chip8) EmulateCycle() {
 			self.Pc += 2
 			break
 		case 0x0004: // 0x8XY4: Adds VY to VX. VF is set to 1 when there's a carry, and to 0 when there isn't.
-			self.V[self.Opcode&0x0F00>>8] = self.V[self.Opcode&0x00F0>>4]
+			x := self.Opcode & 0x0F00 >> 8
+			y := self.Opcode & 0x00F0 >> 4
+			if self.V[y] > 0xFF-self.V[x] {
+				self.V[0xF] = 1
+			} else {
+				self.V[0xF] = 0
+			}
+			self.V[x] += self.V[y]
 			self.Pc += 2
 			break
 		}
