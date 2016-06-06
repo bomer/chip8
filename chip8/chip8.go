@@ -209,6 +209,18 @@ func (self *Chip8) EmulateCycle() {
 			self.V[x] += self.V[y]
 			self.Pc += 2
 			break
+
+		case 0x0005: // 0x8XY5: VY is subtracted from VX. VF is set to 0 when there's a borrow, and 1 when there isn't
+			x := self.Opcode & 0x0F00 >> 8
+			y := self.Opcode & 0x00F0 >> 4
+			if self.V[y] > self.V[x] {
+				self.V[0xF] = 0
+			} else {
+				self.V[0xF] = 1
+			}
+			self.V[x] -= self.V[y]
+			self.Pc += 2
+			break
 		}
 	default:
 		if self.Opcode != 0xE0 && self.Opcode != 0x0E {

@@ -382,3 +382,42 @@ func TestOpCode8XY4(t *testing.T) {
 		t.Error("Failed to update program counter")
 	}
 }
+
+// 0x8XY5: VY is subtracted from VX. VF is set to 0 when there's a borrow, and 1 when there isn't
+// carr if if second mumber is greater than the first
+func TestOpCode8XY5(t *testing.T) {
+	Prep()
+
+	myChip8.Memory[512] = 0x80
+	myChip8.Memory[513] = 0x15
+	// No Carry Case, 200-100
+	myChip8.V[0] = 200
+	myChip8.V[1] = 100
+	myChip8.EmulateCycle()
+	fmt.Printf("v0 = %d", myChip8.V[0])
+	if myChip8.V[0] != 100 {
+		t.Error("Failed to add VY to VX")
+	}
+	if myChip8.V[0xf] != 1 {
+		t.Error("Failed to add VY to VX")
+	}
+	if myChip8.Pc != 514 {
+		t.Error("Failed to update program counter")
+	}
+
+	// Carry Case, 100-200
+	myChip8.Pc = 512
+	myChip8.V[0] = 100
+	myChip8.V[1] = 200
+	myChip8.EmulateCycle()
+	fmt.Printf("v0 = %d", myChip8.V[0])
+	if myChip8.V[0] != 156 {
+		t.Error("Failed to add VY to VX")
+	}
+	if myChip8.V[0xf] != 0 {
+		t.Error("Failed to add VY to VX")
+	}
+	if myChip8.Pc != 514 {
+		t.Error("Failed to update program counter")
+	}
+}
