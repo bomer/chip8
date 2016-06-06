@@ -394,7 +394,7 @@ func TestOpCode8XY5(t *testing.T) {
 	myChip8.V[0] = 200
 	myChip8.V[1] = 100
 	myChip8.EmulateCycle()
-	fmt.Printf("v0 = %d", myChip8.V[0])
+	// fmt.Printf("v0 = %d", myChip8.V[0])
 	if myChip8.V[0] != 100 {
 		t.Error("Failed to add VY to VX")
 	}
@@ -410,7 +410,7 @@ func TestOpCode8XY5(t *testing.T) {
 	myChip8.V[0] = 100
 	myChip8.V[1] = 200
 	myChip8.EmulateCycle()
-	fmt.Printf("v0 = %d", myChip8.V[0])
+	// fmt.Printf("v0 = %d", myChip8.V[0])
 	if myChip8.V[0] != 156 {
 		t.Error("Failed to add VY to VX")
 	}
@@ -419,5 +419,39 @@ func TestOpCode8XY5(t *testing.T) {
 	}
 	if myChip8.Pc != 514 {
 		t.Error("Failed to update program counter")
+	}
+}
+
+// 8XY6 Shifts VX right by one. VF is set to the value of the least significant bit of VX before the shift.[2]
+func TestOpCode8XY6(t *testing.T) {
+	Prep()
+
+	myChip8.Memory[512] = 0x80
+	myChip8.Memory[513] = 0x06
+	// Simple case, 0x05
+	//  5    to   2
+	// 0101      0010 [1] < v[15]
+	myChip8.V[0] = 0x5
+
+	myChip8.EmulateCycle()
+	if myChip8.V[0] != 0x02 {
+		t.Error("Failed to bitshift VX")
+	}
+	if myChip8.V[0xf] != 1 {
+		t.Error("Failed to bitshift VX by 1 and get the correct least important bit flag")
+	}
+
+	// Harder case, 0x1101
+	//  14  to   6
+	// 1101     0110 [1] < v[15]
+	myChip8.Pc = 512
+	myChip8.V[0] = 0xD
+
+	myChip8.EmulateCycle()
+	if myChip8.V[0] != 0x06 {
+		t.Error("Failed to bitshift VX")
+	}
+	if myChip8.V[0xf] != 1 {
+		t.Error("Failed to bitshift VX by 1 and get the correct least important bit flag")
 	}
 }

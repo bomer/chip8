@@ -221,6 +221,15 @@ func (self *Chip8) EmulateCycle() {
 			self.V[x] -= self.V[y]
 			self.Pc += 2
 			break
+
+		case 0x0006: // 8XY6 Shifts VX right by one. VF is set to the value of the least significant bit of VX before the shift.[2]
+			x := self.Opcode & 0x0F00 >> 8
+			// y := self.Opcode & 0x00F0 >> 4
+			// fmt.Printf("Bit shifting CPU register %d", x)
+			self.V[0xF] = self.V[x] & 0x1
+			self.V[x] >>= 1
+			self.Pc += 2
+			break
 		}
 	default:
 		if self.Opcode != 0xE0 && self.Opcode != 0x0E {
