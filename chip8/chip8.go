@@ -214,7 +214,7 @@ func (self *Chip8) EmulateCycle() {
 			x := self.Opcode & 0x0F00 >> 8
 			y := self.Opcode & 0x00F0 >> 4
 			if self.V[y] > self.V[x] {
-				self.V[0xF] = 0
+				self.V[0xF] = 0 //Borrow
 			} else {
 				self.V[0xF] = 1
 			}
@@ -222,12 +222,24 @@ func (self *Chip8) EmulateCycle() {
 			self.Pc += 2
 			break
 
-		case 0x0006: // 8XY6 Shifts VX right by one. VF is set to the value of the least significant bit of VX before the shift.[2]
+		case 0x0006: // 8XY6 Shifts VX right by one. VF set to the value of the least significant bit of VX before the shift
 			x := self.Opcode & 0x0F00 >> 8
 			// y := self.Opcode & 0x00F0 >> 4
 			// fmt.Printf("Bit shifting CPU register %d", x)
 			self.V[0xF] = self.V[x] & 0x1
 			self.V[x] >>= 1
+			self.Pc += 2
+			break
+
+		case 0x0007: //8XY7: Sets VX to VY minus VX. VF is set to 0 when there's a borrow, and 1 when there isn't.
+			x := self.Opcode & 0x0F00 >> 8
+			y := self.Opcode & 0x00F0 >> 4
+			if self.V[x] > self.V[y] {
+				self.V[0xF] = 0 //Borrow
+			} else {
+				self.V[0xF] = 1
+			}
+			self.V[x] = self.V[y] - self.V[x]
 			self.Pc += 2
 			break
 		}
