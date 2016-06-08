@@ -257,6 +257,9 @@ func (self *Chip8) EmulateCycle() {
 		self.Index = self.Opcode & 0x0FFF
 		self.Pc += 2
 		break
+	case 0xB000: //BNNN	Jumps to the address NNN plus V0.
+		self.Pc = self.Opcode&0x0FFF + uint16(self.V[0])
+		break
 	default:
 		if self.Opcode != 0xE0 && self.Opcode != 0x0E {
 			fmt.Println("Unknown Opcode!")
