@@ -532,3 +532,33 @@ func TestOpCode8XYE(t *testing.T) {
 	}
 
 }
+
+// 0x5XY0: Skips the next instruction if VX equals VY.
+func TestOpCode9XY0(t *testing.T) {
+	Prep()
+	if myChip8.Sp != 0 {
+		t.Error("Did not start in the correct program counter")
+	}
+
+	// Success Case, v0 and v1 are both the same memory.
+	myChip8.V[0] = 0x02
+	myChip8.V[1] = 0x02
+	myChip8.Memory[512] = 0x90
+	myChip8.Memory[513] = 0x11
+	myChip8.EmulateCycle()
+
+	if myChip8.Pc != 0x202 { //516
+		t.Error("Did not Update the program counter correctly")
+	}
+
+	//Fail Case - Values are not equal
+	myChip8.Pc = 512
+	myChip8.V[0] = 0x02
+	myChip8.V[1] = 0x03
+
+	myChip8.EmulateCycle()
+
+	if myChip8.Pc != 0x204 { //514
+		t.Error("Did not Update the program counter correctly")
+	}
+}

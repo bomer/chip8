@@ -250,6 +250,17 @@ func (self *Chip8) EmulateCycle() {
 			self.Pc += 2
 			break
 		}
+	case 0x9000: //9XY0	Skips the next instruction if VX doesn't equal VY. Same as 0x5XY0 but !=
+		x := self.Opcode & 0x0F00 >> 8
+		y := self.Opcode & 0x00F0 >> 4
+		if uint16(self.V[x]) != uint16(self.V[y]) {
+			self.Pc += 4
+		} else {
+			self.Pc += 2
+		}
+		break
+
+		break
 	default:
 		if self.Opcode != 0xE0 && self.Opcode != 0x0E {
 			fmt.Println("Unknown Opcode!")
