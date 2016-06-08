@@ -494,3 +494,41 @@ func TestOpCode8XY7(t *testing.T) {
 		t.Error("Failed to update program counter")
 	}
 }
+
+// 8XY6 Shifts VX Left by one. VF is set to the value of the least significant bit of VX before the shift.[2]
+func TestOpCode8XYE(t *testing.T) {
+	Prep()
+
+	myChip8.Memory[512] = 0x80
+	myChip8.Memory[513] = 0x0E
+	// Simple case, 05
+	//  5    to   10
+	// 0101      1010 [1] < v[15]
+	myChip8.V[0] = 0x5
+
+	myChip8.EmulateCycle()
+
+	if myChip8.V[0] != 0x0a {
+		t.Error("Failed to bitshift VX")
+	}
+	if myChip8.V[0xf] != 0 {
+		t.Error("Failed to bitshift VX by 1 and get the correct least important bit flag")
+	}
+
+	// Harder case, 1000 1101, testing the leading bit gets shifts and recored in v15
+	//  142  to   26
+	// 1000 1101      11010 [1] < v[15]
+	myChip8.Pc = 512
+	myChip8.V[0] = 142
+
+	myChip8.EmulateCycle()
+
+	fmt.Printf("v0 = %d", myChip8.V[0])
+	if myChip8.V[0] != 28 {
+		t.Error("Failed to bitshift VX")
+	}
+	if myChip8.V[0xf] != 1 {
+		t.Error("Failed to bitshift VX by 1 and get the correct least important bit flag")
+	}
+
+}

@@ -242,6 +242,13 @@ func (self *Chip8) EmulateCycle() {
 			self.V[x] = self.V[y] - self.V[x]
 			self.Pc += 2
 			break
+		case 0x000E: //0x8XYE: Shifts VX left by one. VF is set to the value of the most significant bit of VX before the shift
+			x := self.Opcode & 0x0F00 >> 8
+			//Because we're shifting left we need the left hand bit.
+			self.V[0xF] = self.V[x] >> 7
+			self.V[x] <<= 1
+			self.Pc += 2
+			break
 		}
 	default:
 		if self.Opcode != 0xE0 && self.Opcode != 0x0E {
