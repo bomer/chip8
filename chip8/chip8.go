@@ -115,12 +115,6 @@ func (self *Chip8) EmulateCycle() {
 		self.Draw_flag = true
 		self.Pc += 2
 		break
-	case 0xA000: // ANNN: Sets I to the address NNN
-		// Execute Opcode
-		self.Index = self.Opcode & 0x0FFF
-		self.Pc += 2
-		break
-
 	//1 to 7, jump, call and skip instructions
 	case 0x1000: // 0x1NNN: Jumps to address NNN
 		self.Pc = self.Opcode & 0x0FFF
@@ -259,7 +253,9 @@ func (self *Chip8) EmulateCycle() {
 			self.Pc += 2
 		}
 		break
-
+	case 0xA000: //ANNN	Sets I to the address NNN.
+		self.Index = self.Opcode & 0x0FFF
+		self.Pc += 2
 		break
 	default:
 		if self.Opcode != 0xE0 && self.Opcode != 0x0E {

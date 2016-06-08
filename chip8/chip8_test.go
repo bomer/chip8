@@ -523,7 +523,7 @@ func TestOpCode8XYE(t *testing.T) {
 
 	myChip8.EmulateCycle()
 
-	fmt.Printf("v0 = %d", myChip8.V[0])
+	// fmt.Printf("v0 = %d", myChip8.V[0])
 	if myChip8.V[0] != 28 {
 		t.Error("Failed to bitshift VX")
 	}
@@ -559,6 +559,27 @@ func TestOpCode9XY0(t *testing.T) {
 	myChip8.EmulateCycle()
 
 	if myChip8.Pc != 0x204 { //514
+		t.Error("Did not Update the program counter correctly")
+	}
+}
+
+////ANNN	Sets I to the address NNN.
+func TestOpCodeANNN(t *testing.T) {
+	Prep()
+	if myChip8.Sp != 0 {
+		t.Error("Did not start in the correct program counter")
+	}
+
+	// Success Case
+	myChip8.Memory[512] = 0xA1
+	myChip8.Memory[513] = 0x11
+	myChip8.Index = 0x132
+	myChip8.EmulateCycle()
+
+	if myChip8.Index != 0x111 { //516
+		t.Error("Did not Update the Index correctly")
+	}
+	if myChip8.Pc != 514 {
 		t.Error("Did not Update the program counter correctly")
 	}
 }
