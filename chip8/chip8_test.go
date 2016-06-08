@@ -583,3 +583,21 @@ func TestOpCodeANNN(t *testing.T) {
 		t.Error("Did not Update the program counter correctly")
 	}
 }
+
+//BNNN	Jumps to the address NNN plus V0.
+func TestOpCodeBNNN(t *testing.T) {
+	Prep()
+	if myChip8.Sp != 0 {
+		t.Error("Did not start in the correct program counter")
+	}
+
+	// Success Case
+	myChip8.Memory[512] = 0xB1
+	myChip8.Memory[513] = 0x11
+
+	myChip8.EmulateCycle()
+
+	if myChip8.Pc != 0x111 { //516
+		t.Error("Did not Update the PC correctly")
+	}
+}

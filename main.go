@@ -14,11 +14,15 @@ func drawGraphics() {
 		for x := 0; x < 64; x++ {
 			if myChip8.Gfx[(y*64)+x] == 0 {
 				//Black pixel
+				fmt.Printf("x")
 			} else {
 				// White pixel
+				fmt.Printf("o")
 			}
 		}
+		fmt.Printf("\n")
 	}
+	fmt.Printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
 }
 
 func main() {
@@ -41,8 +45,10 @@ func main() {
 		myChip8.EmulateCycle()
 
 		// If the draw flag is set, update the screen
-		// if(myChip8.drawFlag)
-		drawGraphics()
+		if myChip8.Draw_flag {
+			drawGraphics()
+			myChip8.Draw_flag = false
+		}
 
 		// Store key press state (Press and Release)
 		// myChip8.setKeys()

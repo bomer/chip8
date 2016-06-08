@@ -4,6 +4,7 @@ package chip8
 import (
 	"fmt"
 	"io/ioutil"
+	"math/rand"
 )
 
 type Chip8 struct {
@@ -38,7 +39,7 @@ type Chip8 struct {
 	Stack [16]uint16
 
 	//Keyboard
-	key [16]byte
+	Key [16]byte
 }
 
 // Initialize registers and Memory once
@@ -98,7 +99,7 @@ func (self *Chip8) EmulateCycle() {
 		self.Pc += 2
 		break
 
-	case 0x0E: // 0x00EE: Returns from subroutine
+	case 0xEE: // 0x00EE: Returns from subroutine
 		self.Sp--                     // 16 levels of stack, decrease stack pointer to prevent overwrite
 		self.Pc = self.Stack[self.Sp] // Put the stored return address from the stack back into the program counter
 		self.Pc += 2                  // Don't forget to increase the program counter!
@@ -108,13 +109,13 @@ func (self *Chip8) EmulateCycle() {
 
 	switch self.Opcode & 0xF000 {
 
-	case 0xE000: // 0x00E0: Clears the screen
-		for i := 0; i < 64*32; i++ {
-			self.Gfx[i] = 0
-		}
-		self.Draw_flag = true
-		self.Pc += 2
-		break
+	// case 0xE000: // 0x00E0: Clears the screen
+	// 	for i := 0; i < 64*32; i++ {
+	// 		self.Gfx[i] = 0
+	// 	}
+	// 	self.Draw_flag = true
+	// 	self.Pc += 2
+	// 	break
 	//1 to 7, jump, call and skip instructions
 	case 0x1000: // 0x1NNN: Jumps to address NNN
 		self.Pc = self.Opcode & 0x0FFF
@@ -260,9 +261,75 @@ func (self *Chip8) EmulateCycle() {
 	case 0xB000: //BNNN	Jumps to the address NNN plus V0.
 		self.Pc = self.Opcode&0x0FFF + uint16(self.V[0])
 		break
+	case 0xC000: //Sets VX to the result of a bitwise and operation on a random number and NN.
+		x := self.Opcode & 0x0F00 >> 8
+		self.V[x] = byte(uint16(rand.Intn(0xFF)) & (self.Opcode & 0x00FF))
+	case 0xD000: // DXYN: Draws a sprite at coordinate (VX, VY) that has a width of 8 pixels and a height of N pixels.
+		// Each row of 8 pixels is read as bit-coded starting from memory location I;
+		// I value doesn't change after the execution of this instruction.
+		// VF is set to 1 if any screen pixels are flipped from set to unset when the sprite is drawn,
+		// and to 0 if that doesn't happen
+		x := byte(self.V[(self.Opcode&0x0F00)>>8])
+		y := byte(self.V[(self.Opcode&0x00F0)>>4])
+		height := byte(self.Opcode & 0x000F)
+
+		var pixel byte
+		var yline byte
+		var xline byte
+		self.V[0xF] = 0
+		//For each scan line
+		for yline = 0; yline < height; yline++ {
+			pixel = self.Memory[self.Index+uint16(yline)]
+			//For each pixel in the scan line
+			for xline = 0; xline < 8; xline++ {
+				//if there is a pixel value
+				if pixel&(0x80>>xline) != 0 {
+					//If the pixel value is already 1, then we need to store V[0xf] as 1 to indicate
+					if self.Gfx[(x+xline+((y+yline)*64))] == 1 {
+						self.V[0xF] = 1
+					}
+					self.Gfx[x+xline+(y+yline)*64] ^= 1
+
+				}
+
+			}
+		}
+
+		// fmt.Printf(format, ...)
+		self.Draw_flag = true
+		self.Pc += 2
+
+		break
+	case 0xE000:
+		switch self.Opcode & 0x00FF {
+		case 0x009E: // EX9E: Skips the next instruction if the key stored in VX is pressed
+			x := self.Opcode & 0x0F00 >> 8
+			if self.Key[self.V[x]] != 0 {
+				self.Pc += 4
+			} else {
+				self.Pc += 2
+			}
+			break
+
+		case 0x0091: // EX9E: Skips the next instruction if the key stored in VX is pressed
+			x := self.Opcode & 0x0F00 >> 8
+			if self.Key[self.V[x]] == 0 {
+				self.Pc += 4
+			} else {
+				self.Pc += 2
+			}
+			break
+		}
+
+		break
+	case 0xF000:
+		break
+
 	default:
-		if self.Opcode != 0xE0 && self.Opcode != 0x0E {
-			fmt.Println("Unknown Opcode!")
+		if self.Opcode != 0xE0 && self.Opcode != 0xEE {
+			fmt.Printf("Error Processing Op Code %02x\n", self.Opcode)
+			// fmt.Println("Unknown Opcode!")
+
 		}
 		break
 
