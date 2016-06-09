@@ -320,10 +320,79 @@ func (self *Chip8) EmulateCycle() {
 			}
 			break
 		}
-
 		break
+	//Final sett woop! fix:fe33
 	case 0xF000:
 		break
+		switch self.Opcode & 0x00FF {
+		case 0x0007: // FX07: Sets VX to the value of the delay timer
+			x := self.Opcode & 0x0F00 >> 8
+			self.delay_timer = self.V[x]
+			self.Pc += 2
+			break
+		case 0x000A: // FX0A: A key press is awaited, and then stored in VX.
+			x := self.Opcode & 0x0F00 >> 8
+			keyPressed := false
+			for i := 0; i < 16; i++ {
+				if self.Key[i] != 0 {
+					self.V[x] = byte(i)
+					keyPressed = true
+				}
+			}
+			if keyPressed {
+				self.Pc += 2
+			}
+			break
+		case 0x0015: //	FX15: Sets the delay timer to VX.
+			x := self.Opcode & 0x0F00 >> 8
+			self.delay_timer = byte(x)
+			self.Pc += 2
+			break
+		case 0x0018: //	FX18: Sets the delay timer to VX.
+			x := self.Opcode & 0x0F00 >> 8
+			self.sound_timer = byte(x)
+			self.Pc += 2
+			break
+		case 0x001E: // FX1E: Adds VX to I
+			x := self.Opcode & 0x0F00 >> 8
+			// VF is set to 1 when range overflow (I+VX>0xFFF), and 0 when there isn't.
+			if self.Index+uint16(self.V[x]) > 0xFFF { // VF is set to 1 when range overflow (I+VX>0xFFF), and 0 when there isn't.
+				self.V[0xF] = 1
+			} else {
+				self.V[0xF] = 0
+			}
+			self.Index += uint16(self.V[x])
+			self.Pc += 2
+			break
+		case 0x0029: // FX29: Sets I to the location of the sprite for the character in VX. Characters 0-F (in hexadecimal) are represented by a 4x5 font
+			x := self.Opcode & 0x0F00 >> 8
+			self.Index = uint16(self.V[x]) * 0x5
+			self.Pc += 2
+			break
+		case 0x0033: // FX33: Stores the Binary-coded decimal representation of VX at the addresses I, I plus 1, and I plus 2
+			x := self.Opcode & 0x0F00 >> 8
+			self.Memory[self.Index] = self.V[x] / 100
+			self.Memory[self.Index+1] = self.V[x] / 10
+			self.Memory[self.Index+2] = self.V[x] % 100
+			self.Pc += 2
+			break
+		case 0x055: // FX55	Stores V0 to VX (including VX) in memory starting at address I.[4]
+			x := self.Opcode & 0x0F00 >> 8
+			for i := 0; i < int(x); i++ {
+				self.Memory[i] = self.V[int(self.Index)+i]
+			}
+			self.Index += x + 1
+			self.Pc += 2
+			break
+		case 0x065: // FX55	Fills V0 to VX (including VX) with values from memory starting at address I.[4]
+			x := self.Opcode & 0x0F00 >> 8
+			for i := 0; i < int(x); i++ {
+				self.V[i] = self.Memory[int(self.Index)+i]
+			}
+			self.Index += x + 1
+			self.Pc += 2
+			break
+		}
 
 	default:
 		if self.Opcode != 0xE0 && self.Opcode != 0xEE {
