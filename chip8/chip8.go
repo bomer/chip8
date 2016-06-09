@@ -87,7 +87,7 @@ func (self *Chip8) EmulateCycle() {
 	//Bitwise, add padding to end of first byte and append second byte to end
 	self.Opcode = (b1 << 8) | b2
 	// Decode Opcode
-	// fmt.Printf("Processing Op Code %02x\n", self.Opcode)
+	fmt.Printf("Processing Op Code %02x\n", self.Opcode)
 
 	// 0x00E0 and 0x000E We have to do first because Golang seems to truncate 0x0000 into 0x00
 	switch self.Opcode {
@@ -263,6 +263,7 @@ func (self *Chip8) EmulateCycle() {
 		break
 	case 0xC000: //Sets VX to the result of a bitwise and operation on a random number and NN.
 		x := self.Opcode & 0x0F00 >> 8
+		self.Pc += 2
 		self.V[x] = byte(uint16(rand.Intn(0xFF)) & (self.Opcode & 0x00FF))
 	case 0xD000: // DXYN: Draws a sprite at coordinate (VX, VY) that has a width of 8 pixels and a height of N pixels.
 		// Each row of 8 pixels is read as bit-coded starting from memory location I;
@@ -288,7 +289,7 @@ func (self *Chip8) EmulateCycle() {
 					if self.Gfx[(x+xline+((y+yline)*64))] == 1 {
 						self.V[0xF] = 1
 					}
-					self.Gfx[x+xline+(y+yline)*64] ^= 1
+					self.Gfx[x+xline+((y+yline)*64)] ^= 1
 
 				}
 
@@ -311,7 +312,7 @@ func (self *Chip8) EmulateCycle() {
 			}
 			break
 
-		case 0x0091: // EX9E: Skips the next instruction if the key stored in VX is pressed
+		case 0x00A1: // EX9E: Skips the next instruction if the key stored in VX is pressed
 			x := self.Opcode & 0x0F00 >> 8
 			if self.Key[self.V[x]] == 0 {
 				self.Pc += 4
@@ -323,11 +324,10 @@ func (self *Chip8) EmulateCycle() {
 		break
 	//Final sett woop! fix:fe33
 	case 0xF000:
-		break
 		switch self.Opcode & 0x00FF {
 		case 0x0007: // FX07: Sets VX to the value of the delay timer
 			x := self.Opcode & 0x0F00 >> 8
-			self.delay_timer = self.V[x]
+			self.V[x] = self.delay_timer
 			self.Pc += 2
 			break
 		case 0x000A: // FX0A: A key press is awaited, and then stored in VX.
@@ -371,9 +371,10 @@ func (self *Chip8) EmulateCycle() {
 			break
 		case 0x0033: // FX33: Stores the Binary-coded decimal representation of VX at the addresses I, I plus 1, and I plus 2
 			x := self.Opcode & 0x0F00 >> 8
+
 			self.Memory[self.Index] = self.V[x] / 100
-			self.Memory[self.Index+1] = self.V[x] / 10
-			self.Memory[self.Index+2] = self.V[x] % 100
+			self.Memory[self.Index+1] = (self.V[x] / 10) % 10
+			self.Memory[self.Index+2] = (self.V[x] % 100) % 10
 			self.Pc += 2
 			break
 		case 0x055: // FX55	Stores V0 to VX (including VX) in memory starting at address I.[4]
@@ -392,6 +393,9 @@ func (self *Chip8) EmulateCycle() {
 			self.Index += x + 1
 			self.Pc += 2
 			break
+		default:
+			fmt.Printf("Unknown opcode [0xF000]: 0x%X\n", self.Opcode)
+			break
 		}
 
 	default:
@@ -407,6 +411,7 @@ func (self *Chip8) EmulateCycle() {
 	// Update timers
 	if self.delay_timer > 0 {
 		self.delay_timer--
+		fmt.Printf("delay timer -- . now %d", self.delay_timer)
 	}
 
 	if self.sound_timer > 0 {
