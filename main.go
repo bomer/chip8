@@ -122,7 +122,7 @@ func draw() {
 	// Draw
 	for y := 0; y < 32; y++ {
 		for x := 0; x < 64; x++ {
-			if myChip8.Gfx[(y*64)+x] == 0 {
+			if myChip8.Gfx[((31-y)*64)+x] == 0 {
 				gl.Color3f(0.0, 0.0, 0.0)
 			} else {
 				gl.Color3f(1.0, 1.0, 1.0)
@@ -154,7 +154,7 @@ func main() {
 
 	myChip8.Init()
 	// Doesnt exist yet
-	myChip8.LoadGame("pong.c8")
+	myChip8.LoadGame("tetris.c8")
 
 	// fmt.Printf("Hello chip8.\n We will be using the memory range %d %d \n ", 0x000, 0xFFF)
 
@@ -188,7 +188,7 @@ func main() {
 	//Run emulator on another go-routine
 	//Else emulator runs to slow on main thread.
 	go func() {
-		emuticker := time.NewTicker(time.Second / 360)
+		emuticker := time.NewTicker(time.Second / 300)
 		for {
 			myChip8.EmulateCycle()
 			<-emuticker.C
@@ -198,11 +198,8 @@ func main() {
 	ticker := time.NewTicker(time.Second / 30)
 	for !window.ShouldClose() {
 		// myChip8.EmulateCycle()
-		// player.update()
-		//Output
-
 		if myChip8.Draw_flag {
-			// drawGraphics()
+			// drawGraphics() //for debugging
 			draw()
 			myChip8.Draw_flag = false
 		}

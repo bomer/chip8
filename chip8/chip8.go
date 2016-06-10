@@ -108,14 +108,6 @@ func (self *Chip8) EmulateCycle() {
 	}
 
 	switch self.Opcode & 0xF000 {
-
-	// case 0xE000: // 0x00E0: Clears the screen
-	// 	for i := 0; i < 64*32; i++ {
-	// 		self.Gfx[i] = 0
-	// 	}
-	// 	self.Draw_flag = true
-	// 	self.Pc += 2
-	// 	break
 	//1 to 7, jump, call and skip instructions
 	case 0x1000: // 0x1NNN: Jumps to address NNN
 		self.Pc = self.Opcode & 0x0FFF
