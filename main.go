@@ -154,7 +154,7 @@ func main() {
 
 	myChip8.Init()
 	// Doesnt exist yet
-	myChip8.LoadGame("tetris.c8")
+	myChip8.LoadGame("pong.c8")
 
 	// fmt.Printf("Hello chip8.\n We will be using the memory range %d %d \n ", 0x000, 0xFFF)
 
@@ -188,7 +188,7 @@ func main() {
 	//Run emulator on another go-routine
 	//Else emulator runs to slow on main thread.
 	go func() {
-		emuticker := time.NewTicker(time.Second / 300)
+		emuticker := time.NewTicker(time.Second / 360)
 		for {
 			myChip8.EmulateCycle()
 			<-emuticker.C
