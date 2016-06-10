@@ -87,7 +87,7 @@ func (self *Chip8) EmulateCycle() {
 	//Bitwise, add padding to end of first byte and append second byte to end
 	self.Opcode = (b1 << 8) | b2
 	// Decode Opcode
-	fmt.Printf("Processing Op Code %02x\n", self.Opcode)
+	// fmt.Printf("Processing Op Code %02x\n", self.Opcode)
 
 	// 0x00E0 and 0x000E We have to do first because Golang seems to truncate 0x0000 into 0x00
 	switch self.Opcode {
@@ -270,13 +270,14 @@ func (self *Chip8) EmulateCycle() {
 		// I value doesn't change after the execution of this instruction.
 		// VF is set to 1 if any screen pixels are flipped from set to unset when the sprite is drawn,
 		// and to 0 if that doesn't happen
-		x := byte(self.V[(self.Opcode&0x0F00)>>8])
-		y := byte(self.V[(self.Opcode&0x00F0)>>4])
-		height := byte(self.Opcode & 0x000F)
+		x := uint16(self.V[(self.Opcode&0x0F00)>>8])
+		y := uint16(self.V[(self.Opcode&0x00F0)>>4])
+		height := uint16(self.Opcode & 0x000F)
 
+		// fmt.Printf("Drawing - %02x, x=%d y=%d", self.Opcode, x, y)
 		var pixel byte
-		var yline byte
-		var xline byte
+		var yline uint16
+		var xline uint16
 		self.V[0xF] = 0
 		//For each scan line
 		for yline = 0; yline < height; yline++ {
@@ -411,7 +412,7 @@ func (self *Chip8) EmulateCycle() {
 	// Update timers
 	if self.delay_timer > 0 {
 		self.delay_timer--
-		fmt.Printf("delay timer -- . now %d", self.delay_timer)
+		// fmt.Printf("delay timer -- . now %d", self.delay_timer)
 	}
 
 	if self.sound_timer > 0 {

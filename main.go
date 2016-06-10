@@ -42,33 +42,44 @@ func drawGraphics() {
 // key events are a way to get input from GLFW.
 func keyCallback(w *glfw.Window, key glfw.Key, scancode int, action glfw.Action, mods glfw.ModifierKey) {
 	//if u only want the on press, do = && && action == glfw.Press
-	if key == glfw.KeyW && action == glfw.Press {
-		fmt.Printf("W Pressed!\n")
-		// player.moveUp()
+	var keydown byte
+	keydown = 0
+
+	if action == glfw.Press {
+		keydown = 1
 	}
-	if key == glfw.KeyA { //&& action == glfw.Press
-		fmt.Printf("A Pressed!\n")
-		if action == glfw.Release {
-			// player.moving_left = false
-		}
-		if action == glfw.Press {
-			// player.moving_left = true
-		}
-		// player.moveLeft()
-	}
-	if key == glfw.KeyS {
-		fmt.Printf("S Pressed!\n")
-		// player.moveDown()
-	}
-	if key == glfw.KeyD {
-		fmt.Printf("D Pressed!\n")
-		if action == glfw.Release {
-			// player.moving_right = false
-		}
-		if action == glfw.Press {
-			// player.moving_right = true
-		}
-		// player.moveRight()
+	if key == glfw.Key1 {
+		myChip8.Key[0x1] = keydown
+	} else if key == glfw.Key2 {
+		myChip8.Key[0x2] = keydown
+	} else if key == glfw.Key3 {
+		myChip8.Key[0x3] = keydown
+	} else if key == glfw.Key4 {
+		myChip8.Key[0xC] = keydown
+	} else if key == glfw.KeyQ {
+		myChip8.Key[0x4] = keydown
+	} else if key == glfw.KeyW {
+		myChip8.Key[0x5] = keydown
+	} else if key == glfw.KeyE {
+		myChip8.Key[0x6] = keydown
+	} else if key == glfw.KeyR {
+		myChip8.Key[0xD] = keydown
+	} else if key == glfw.KeyA {
+		myChip8.Key[0x7] = keydown
+	} else if key == glfw.KeyS {
+		myChip8.Key[0x8] = keydown
+	} else if key == glfw.KeyD {
+		myChip8.Key[0x9] = keydown
+	} else if key == glfw.KeyF {
+		myChip8.Key[0xE] = keydown
+	} else if key == glfw.KeyZ {
+		myChip8.Key[0xA] = keydown
+	} else if key == glfw.KeyX {
+		myChip8.Key[0x0] = keydown
+	} else if key == glfw.KeyC {
+		myChip8.Key[0xB] = keydown
+	} else if key == glfw.KeyV {
+		myChip8.Key[0xF] = keydown
 	}
 
 	if key == glfw.KeyEscape && action == glfw.Press {
@@ -174,15 +185,24 @@ func main() {
 	runtime.LockOSThread()
 	glfw.SwapInterval(1)
 
-	// player = NewBall(600, 600)
+	//Run emulator on another go-routine
+	//Else emulator runs to slow on main thread.
+	go func() {
+		emuticker := time.NewTicker(time.Second / 360)
+		for {
+			myChip8.EmulateCycle()
+			<-emuticker.C
+		}
+	}()
 
-	ticker := time.NewTicker(time.Second / 60)
+	ticker := time.NewTicker(time.Second / 30)
 	for !window.ShouldClose() {
-		myChip8.EmulateCycle()
+		// myChip8.EmulateCycle()
 		// player.update()
 		//Output
+
 		if myChip8.Draw_flag {
-			drawGraphics()
+			// drawGraphics()
 			draw()
 			myChip8.Draw_flag = false
 		}
