@@ -279,10 +279,12 @@ func (self *Chip8) EmulateCycle() {
 				//if there is a pixel value
 				if pixel&(0x80>>xline) != 0 {
 					//If the pixel value is already 1, then we need to store V[0xf] as 1 to indicate
-					if self.Gfx[(x+xline+((y+yline)*64))] == 1 {
-						self.V[0xF] = 1
+					if (x + xline + ((y + yline) * 64)) < 2048 {
+						if self.Gfx[(x+xline+((y+yline)*64))] == 1 {
+							self.V[0xF] = 1
+						}
+						self.Gfx[x+xline+((y+yline)*64)] ^= 1
 					}
-					self.Gfx[x+xline+((y+yline)*64)] ^= 1
 
 				}
 
