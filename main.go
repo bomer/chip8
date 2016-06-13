@@ -1,8 +1,6 @@
 package main
 
 import (
-	"encoding/binary"
-	"fmt"
 	"github.com/bomer/chip8/chip8"
 	"golang.org/x/mobile/app"
 	"golang.org/x/mobile/event/key"
@@ -15,11 +13,12 @@ import (
 	"golang.org/x/mobile/exp/gl/glutil"
 	"golang.org/x/mobile/geom"
 	"golang.org/x/mobile/gl"
+
+	"encoding/binary"
+	"fmt"
 	"image"
 	"log"
-
 	"os"
-
 	"time"
 )
 
@@ -81,10 +80,10 @@ func main() {
 					// events sent by the system.
 					continue
 				}
+				onPaint(glctx, sz)
 				if myChip8.Draw_flag {
 					// drawGraphics() //for debugging
 
-					onPaint(glctx, sz)
 					myChip8.Draw_flag = false
 				}
 
@@ -209,7 +208,7 @@ func onPaint(glctx gl.Context, sz size.Event) {
 	glctx.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
 
 	img.Draw(sz, tl, tr, bl, img.RGBA.Bounds())
-	fps.Draw(sz)
+	// fps.Draw(sz)
 
 	//cleanup every  frame
 	img.Release()
