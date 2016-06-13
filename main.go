@@ -42,7 +42,7 @@ var myChip8 chip8.Chip8
 func main() {
 	myChip8.Init()
 	// Doesnt exist yet
-	myChip8.LoadGame("pong.c8")
+	myChip8.LoadGame("brix.c8")
 
 	//Run emulator on another go-routine
 	//Else emulator runs to slow on main thread.
