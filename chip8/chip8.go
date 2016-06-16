@@ -92,14 +92,12 @@ func (self *Chip8) LoadGame(filename string) {
 		// fmt.Printf("Rom Length = %d\n", rom_length)
 	}
 
-	//If room to store ROM in RAM
+	//If room to store ROM in RAM, start at 512 or 0x200
 	if (4096 - 512) > rom_length {
 		for i := 0; i < rom_length; i++ {
 			self.Memory[i+512] = rom[i]
 		}
 	}
-
-	// fmt.Printf("Rom %s loaded into Memory\n", filename)
 }
 
 //Tick to load next emulation cycle
@@ -110,8 +108,8 @@ func (self *Chip8) EmulateCycle() {
 
 	//Bitwise, add padding to end of first byte and append second byte to end
 	self.Opcode = (b1 << 8) | b2
-	// Decode Opcode
-	// fmt.Printf("Processing Op Code %02x\n", self.Opcode)
+	x := (self.Opcode & 0x0F00) >> 8
+	y := self.Opcode & 0x00F0 >> 4
 
 	// 0x00E0 and 0x000E We have to do first because Golang seems to truncate 0x0000 into 0x00
 	switch self.Opcode {
@@ -168,7 +166,6 @@ func (self *Chip8) EmulateCycle() {
 		}
 		break
 	case 0x6000: //6XNN	Sets VX to NN.
-		x := (self.Opcode & 0x0F00) >> 8
 		NN := byte(self.Opcode & 0x00FF)
 		self.V[x] = NN
 		self.Pc += 2
@@ -192,26 +189,24 @@ func (self *Chip8) EmulateCycle() {
 	case 0x8000:
 		switch self.Opcode & 0x000F { //	8XY0 Sets VX to the value of VY.
 		case 0x0000: // 0x8XY0: Sets VX to the value of VY
-			self.V[self.Opcode&0x0F00>>8] = self.V[self.Opcode&0x00F0>>4]
+			self.V[x] = self.V[y]
 			self.Pc += 2
 			break
 		case 0x0001: // 0x8XY0: Sets VX to the value of VY
-			self.V[self.Opcode&0x0F00>>8] |= self.V[self.Opcode&0x00F0>>4]
+			self.V[x] |= self.V[y]
 			self.Pc += 2
 			break
 
 		case 0x0002: // 0x8XY0: Sets VX to VX and VY.
-			self.V[self.Opcode&0x0F00>>8] &= self.V[self.Opcode&0x00F0>>4]
+			self.V[x] &= self.V[y]
 			self.Pc += 2
 			break
 
 		case 0x0003: // 0x8XY3:	Sets VX to VX xor VY.
-			self.V[self.Opcode&0x0F00>>8] ^= self.V[self.Opcode&0x00F0>>4]
+			self.V[x] ^= self.V[y]
 			self.Pc += 2
 			break
 		case 0x0004: // 0x8XY4: Adds VY to VX. VF is set to 1 when there's a carry, and to 0 when there isn't.
-			x := self.Opcode & 0x0F00 >> 8
-			y := self.Opcode & 0x00F0 >> 4
 			if self.V[y] > 0xFF-self.V[x] {
 				self.V[0xF] = 1
 			} else {
@@ -222,7 +217,6 @@ func (self *Chip8) EmulateCycle() {
 			break
 
 		case 0x0005: // 0x8XY5: VY is subtracted from VX. VF is set to 0 when there's a borrow, and 1 when there isn't
-			x := self.Opcode & 0x0F00 >> 8
 			y := self.Opcode & 0x00F0 >> 4
 			if self.V[y] > self.V[x] {
 				self.V[0xF] = 0 //Borrow
@@ -234,7 +228,6 @@ func (self *Chip8) EmulateCycle() {
 			break
 
 		case 0x0006: // 8XY6 Shifts VX right by one. VF set to the value of the least significant bit of VX before the shift
-			x := self.Opcode & 0x0F00 >> 8
 			// y := self.Opcode & 0x00F0 >> 4
 			// fmt.Printf("Bit shifting CPU register %d", x)
 			self.V[0xF] = self.V[x] & 0x1
@@ -243,7 +236,6 @@ func (self *Chip8) EmulateCycle() {
 			break
 
 		case 0x0007: //8XY7: Sets VX to VY minus VX. VF is set to 0 when there's a borrow, and 1 when there isn't.
-			x := self.Opcode & 0x0F00 >> 8
 			y := self.Opcode & 0x00F0 >> 4
 			if self.V[x] > self.V[y] {
 				self.V[0xF] = 0 //Borrow
@@ -254,15 +246,13 @@ func (self *Chip8) EmulateCycle() {
 			self.Pc += 2
 			break
 		case 0x000E: //0x8XYE: Shifts VX left by one. VF is set to the value of the most significant bit of VX before the shift
-			x := self.Opcode & 0x0F00 >> 8
 			//Because we're shifting left we need the left hand bit.
 			self.V[0xF] = self.V[x] >> 7
 			self.V[x] <<= 1
 			self.Pc += 2
 			break
 		}
-	case 0x9000: //9XY0	Skips the next instruction if VX doesn't equal VY. Same as 0x5XY0 but !=
-		x := self.Opcode & 0x0F00 >> 8
+	case 0x9000: //9XY0	Skips the next instruction if VX doesn't equal VY. Same as 0x5XY0 but !
 		y := self.Opcode & 0x00F0 >> 4
 		if uint16(self.V[x]) != uint16(self.V[y]) {
 			self.Pc += 4
@@ -277,8 +267,7 @@ func (self *Chip8) EmulateCycle() {
 	case 0xB000: //BNNN	Jumps to the address NNN plus V0.
 		self.Pc = self.Opcode&0x0FFF + uint16(self.V[0])
 		break
-	case 0xC000: //Sets VX to the result of a bitwise and operation on a random number and NN.
-		x := self.Opcode & 0x0F00 >> 8
+	case 0xC000: //Sets VX to the result of a bitwise and operation on a random number and NN
 		self.Pc += 2
 		self.V[x] = byte(uint16(rand.Intn(0xFF)) & (self.Opcode & 0x00FF))
 	case 0xD000: // DXYN: Draws a sprite at coordinate (VX, VY) that has a width of 8 pixels and a height of N pixels.
@@ -286,8 +275,8 @@ func (self *Chip8) EmulateCycle() {
 		// I value doesn't change after the execution of this instruction.
 		// VF is set to 1 if any screen pixels are flipped from set to unset when the sprite is drawn,
 		// and to 0 if that doesn't happen
-		x := uint16(self.V[(self.Opcode&0x0F00)>>8])
-		y := uint16(self.V[(self.Opcode&0x00F0)>>4])
+		x := uint16(self.V[x])
+		y := uint16(self.V[y])
 		height := uint16(self.Opcode & 0x000F)
 
 		// fmt.Printf("Drawing - %02x, x=%d y=%d", self.Opcode, x, y)
@@ -323,7 +312,6 @@ func (self *Chip8) EmulateCycle() {
 	case 0xE000:
 		switch self.Opcode & 0x00FF {
 		case 0x009E: // EX9E: Skips the next instruction if the key stored in VX is pressed
-			x := self.Opcode & 0x0F00 >> 8
 			if self.Key[self.V[x]] != 0 {
 				self.Pc += 4
 			} else {
@@ -332,7 +320,6 @@ func (self *Chip8) EmulateCycle() {
 			break
 
 		case 0x00A1: // EX9E: Skips the next instruction if the key stored in VX is pressed
-			x := self.Opcode & 0x0F00 >> 8
 			if self.Key[self.V[x]] == 0 {
 				self.Pc += 4
 			} else {
@@ -345,12 +332,10 @@ func (self *Chip8) EmulateCycle() {
 	case 0xF000:
 		switch self.Opcode & 0x00FF {
 		case 0x0007: // FX07: Sets VX to the value of the delay timer
-			x := self.Opcode & 0x0F00 >> 8
 			self.V[x] = self.Delay_timer
 			self.Pc += 2
 			break
 		case 0x000A: // FX0A: A key press is awaited, and then stored in VX.
-			x := self.Opcode & 0x0F00 >> 8
 			keyPressed := false
 			for i := 0; i < 16; i++ {
 				if self.Key[i] != 0 {
@@ -363,17 +348,14 @@ func (self *Chip8) EmulateCycle() {
 			}
 			break
 		case 0x0015: //	FX15: Sets the delay timer to VX.
-			x := self.Opcode & 0x0F00 >> 8
 			self.Delay_timer = self.V[x]
 			self.Pc += 2
 			break
 		case 0x0018: //	FX18: Sets the delay timer to VX.
-			x := self.Opcode & 0x0F00 >> 8
 			self.Sound_timer = byte(self.V[x])
 			self.Pc += 2
 			break
 		case 0x001E: // FX1E: Adds VX to I
-			x := self.Opcode & 0x0F00 >> 8
 			// VF is set to 1 when range overflow (I+VX>0xFFF), and 0 when there isn't.
 			if self.Index+uint16(self.V[x]) > 0xFFF { // VF is set to 1 when range overflow (I+VX>0xFFF), and 0 when there isn't.
 				self.V[0xF] = 1
@@ -384,20 +366,16 @@ func (self *Chip8) EmulateCycle() {
 			self.Pc += 2
 			break
 		case 0x0029: // FX29: Sets I to the location of the sprite for the character in VX. Characters 0-F (in hexadecimal) are represented by a 4x5 font
-			x := self.Opcode & 0x0F00 >> 8
 			self.Index = uint16(self.V[x]) * 0x5
 			self.Pc += 2
 			break
 		case 0x0033: // FX33: Stores the Binary-coded decimal representation of VX at the addresses I, I plus 1, and I plus 2
-			x := self.Opcode & 0x0F00 >> 8
-
 			self.Memory[self.Index] = self.V[x] / 100
 			self.Memory[self.Index+1] = (self.V[x] / 10) % 10
 			self.Memory[self.Index+2] = (self.V[x] % 100) % 10
 			self.Pc += 2
 			break
 		case 0x055: // FX55	Stores V0 to VX (including VX) in memory starting at address I.[4]
-			x := self.Opcode & 0x0F00 >> 8
 			for i := 0; i < int(x); i++ {
 				self.Memory[self.Index+uint16(i)] = self.V[i]
 			}
@@ -405,7 +383,6 @@ func (self *Chip8) EmulateCycle() {
 			self.Pc += 2
 			break
 		case 0x065: // FX55	Fills V0 to VX (including VX) with values from memory starting at address I.[4]
-			x := self.Opcode & 0x0F00 >> 8
 			for i := 0; i < int(x); i++ {
 				self.V[i] = self.Memory[int(self.Index)+i]
 			}
