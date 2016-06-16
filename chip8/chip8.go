@@ -51,8 +51,8 @@ type Chip8 struct {
 	Draw_flag bool
 
 	//Sound Variables
-	delay_timer byte
-	sound_timer byte
+	Delay_timer byte
+	Sound_timer byte
 
 	//Stack
 	Stack [16]uint16
@@ -346,7 +346,7 @@ func (self *Chip8) EmulateCycle() {
 		switch self.Opcode & 0x00FF {
 		case 0x0007: // FX07: Sets VX to the value of the delay timer
 			x := self.Opcode & 0x0F00 >> 8
-			self.V[x] = self.delay_timer
+			self.V[x] = self.Delay_timer
 			self.Pc += 2
 			break
 		case 0x000A: // FX0A: A key press is awaited, and then stored in VX.
@@ -364,12 +364,12 @@ func (self *Chip8) EmulateCycle() {
 			break
 		case 0x0015: //	FX15: Sets the delay timer to VX.
 			x := self.Opcode & 0x0F00 >> 8
-			self.delay_timer = byte(x)
+			self.Delay_timer = self.V[x]
 			self.Pc += 2
 			break
 		case 0x0018: //	FX18: Sets the delay timer to VX.
 			x := self.Opcode & 0x0F00 >> 8
-			self.sound_timer = byte(x)
+			self.Sound_timer = byte(self.V[x])
 			self.Pc += 2
 			break
 		case 0x001E: // FX1E: Adds VX to I
@@ -399,7 +399,7 @@ func (self *Chip8) EmulateCycle() {
 		case 0x055: // FX55	Stores V0 to VX (including VX) in memory starting at address I.[4]
 			x := self.Opcode & 0x0F00 >> 8
 			for i := 0; i < int(x); i++ {
-				self.Memory[i] = self.V[int(self.Index)+i]
+				self.Memory[self.Index+uint16(i)] = self.V[i]
 			}
 			self.Index += x + 1
 			self.Pc += 2
@@ -428,16 +428,16 @@ func (self *Chip8) EmulateCycle() {
 	}
 
 	// Update timers
-	if self.delay_timer > 0 {
-		self.delay_timer--
-		// fmt.Printf("delay timer -- . now %d", self.delay_timer)
+	if self.Delay_timer > 0 {
+		self.Delay_timer--
+		// fmt.Printf("delay timer -- . now %d", self.Delay_timer)
 	}
 
-	if self.sound_timer > 0 {
-		if self.sound_timer == 1 {
+	if self.Sound_timer > 0 {
+		if self.Sound_timer == 1 {
 			// fmt.Printf("BEEP!\n")
 
 		}
-		self.sound_timer--
+		self.Sound_timer--
 	}
 }

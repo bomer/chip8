@@ -70,7 +70,7 @@ func TestOpCode000E(t *testing.T) {
 
 	//Set instructions to Reset Pointer,
 	myChip8.Memory[512] = 0x00
-	myChip8.Memory[513] = 0x0E
+	myChip8.Memory[513] = 0xEE
 
 	myChip8.EmulateCycle()
 	if myChip8.Sp != 1 {
@@ -600,4 +600,297 @@ func TestOpCodeBNNN(t *testing.T) {
 	if myChip8.Pc != 0x111 { //516
 		t.Error("Did not Update the PC correctly")
 	}
+}
+
+//CXNN	Sets VX to the result of a bitwise and operation on a random number and NN.
+func TestOpCodeCXNN(t *testing.T) {
+	Prep()
+	myChip8.Memory[512] = 0xC0
+	myChip8.Memory[513] = 0x11
+	myChip8.V[0] = 0
+	myChip8.EmulateCycle()
+
+	if myChip8.V[0] == 0 {
+		t.Error("Random number error, number not changed!!")
+	}
+}
+
+//DXYN
+// Sprites stored in memory at location in index register (I), 8bits wide.
+// Wraps around the screen. If when drawn, clears a pixel, register VF is set to 1 otherwise it is zero.
+// All drawing is XOR drawing (i.e. it toggles the screen pixels).
+// Sprites are drawn starting at position VX, VY.
+// N is the number of 8bit rows that need to be drawn.
+// If N is greater than 1, second line continues at position VX, VY+1, and so on.
+func TestOpCodeDX9E(t *testing.T) {
+	Prep()
+	// Success Case
+	myChip8.Pc = 512
+	myChip8.Memory[512] = 0xD9
+	myChip8.Memory[513] = 0x9E
+
+	myChip8.EmulateCycle()
+
+	found := false
+	for i := 0; i < 2048; i++ {
+		if myChip8.Gfx[i] == 1 {
+			found = true
+		}
+	}
+	if !found {
+		t.Error("Failed to draw a sprite")
+	}
+}
+
+//EX9E	Skips the next instruction if the key stored in VX is pressed.
+func TestOpCodeEX9E(t *testing.T) {
+	Prep()
+	// Success Case
+	myChip8.Pc = 512
+	myChip8.Memory[512] = 0xE0
+	myChip8.Memory[513] = 0x9E
+
+	myChip8.EmulateCycle()
+
+	if myChip8.Pc != 514 { //516
+		t.Error("Did not Update the PC correctly")
+	}
+
+	// Success Case
+	myChip8.Pc = 512
+	myChip8.Key[0] = 1
+	myChip8.Memory[512] = 0xE0
+	myChip8.Memory[513] = 0x9E
+
+	myChip8.EmulateCycle()
+
+	if myChip8.Pc != 516 { //516
+		t.Error("Did not Update the PC correctly")
+	}
+}
+
+// EX9E: Skips the next instruction if the key stored in VX is not pressed
+func TestOpCodeEXA1(t *testing.T) {
+	Prep()
+
+	// Success Case
+	myChip8.Pc = 512
+	myChip8.Key[0] = 0
+	myChip8.Memory[512] = 0xE0
+	myChip8.Memory[513] = 0xA1
+
+	myChip8.EmulateCycle()
+
+	if myChip8.Pc != 516 { //516
+		t.Error("Did not Update the PC correctly")
+	}
+
+	// Success Case
+	myChip8.Pc = 512
+	myChip8.Key[0] = 1
+	myChip8.Memory[512] = 0xE0
+	myChip8.Memory[513] = 0xA1
+
+	myChip8.EmulateCycle()
+
+	if myChip8.Pc != 514 { //516
+		t.Error("Did not Update the PC correctly")
+	}
+}
+
+// FX07	Sets VX to the value of the delay timer.
+func TestOpCodeFX07(t *testing.T) {
+	Prep()
+	// Success Case
+	myChip8.Pc = 512
+	myChip8.Delay_timer = 55
+	myChip8.Memory[512] = 0xF0
+	myChip8.Memory[513] = 0x07
+
+	myChip8.EmulateCycle()
+
+	if myChip8.V[0] != 55 {
+		t.Error("Did not Update VX correctly")
+	}
+
+}
+
+// FX0A	A key press is awaited, and then stored in VX.
+func TestOpCodeFX0A(t *testing.T) {
+	Prep()
+	// Success Case, do a pass with keyy off, ensure pc does not icnrease
+
+	myChip8.Pc = 512
+	myChip8.Key[0] = 0
+	myChip8.Memory[512] = 0xF0
+	myChip8.Memory[513] = 0x0A
+
+	myChip8.EmulateCycle()
+	if myChip8.Pc != 512 {
+		t.Error("Did not Update VX correctly")
+	}
+	myChip8.EmulateCycle()
+	if myChip8.Pc != 512 {
+		t.Error("Did not Update VX correctly")
+	}
+
+	// then set key value to 1 and ensure moves on
+	myChip8.Key[0] = 1
+	myChip8.EmulateCycle()
+	if myChip8.Pc != 514 {
+		t.Error("Did not Update PC correctly")
+	}
+
+}
+
+// FX15	Sets the delay timer to VX.
+func TestOpCodeFX15(t *testing.T) {
+	Prep()
+	// Success Case, 54 becomes be because timer decreases at ed of CPU cycle
+	myChip8.Pc = 512
+	myChip8.V[0] = 54
+	myChip8.Memory[512] = 0xF0
+	myChip8.Memory[513] = 0x15
+	myChip8.EmulateCycle()
+	// fmt.Printf("dtimer=%d", myChip8.Delay_timer)
+	if myChip8.Delay_timer != 53 {
+		t.Error("Did not Update delay timer correctly")
+	}
+
+}
+
+// FX18	Sets the sound timer to VX.
+func TestOpCodeFX18(t *testing.T) {
+	Prep()
+	// Success Case, 54 becomes be because timer decreases at ed of CPU cycle
+	myChip8.Pc = 512
+	myChip8.V[0] = 54
+	myChip8.Memory[512] = 0xF0
+	myChip8.Memory[513] = 0x18
+	myChip8.EmulateCycle()
+	// fmt.Printf("dtimer=%d", myChip8.Delay_timer)
+	if myChip8.Sound_timer != 53 {
+		t.Error("Did not Update delay timer correctly")
+	}
+}
+
+// FX1E	Adds VX to I.[3]
+func TestOpCodeFX1E(t *testing.T) {
+	Prep()
+	// Success Case, No overflow
+	myChip8.Pc = 512
+	myChip8.V[0] = 50
+	myChip8.Index = 200
+	myChip8.Memory[512] = 0xF0
+	myChip8.Memory[513] = 0x1E
+	myChip8.EmulateCycle()
+	if myChip8.Index != 250 {
+		t.Error("Index")
+	}
+	if myChip8.V[0xf] != 0 {
+		t.Error("carry flag is wrong!")
+	}
+
+	// Success Case, 54 becomes be because timer decreases at ed of CPU cycle
+	myChip8.Pc = 512
+	myChip8.V[0] = 0xFF
+	myChip8.Index = 0xFAA
+	myChip8.Memory[512] = 0xF0
+	myChip8.Memory[513] = 0x1E
+	myChip8.EmulateCycle()
+	if myChip8.Index != 4265 {
+		t.Error("Index is wrong!")
+	}
+	if myChip8.V[0xf] != 1 {
+		t.Error("carry flag is wrong!")
+	}
+}
+
+//FX29	Sets I to the location of the sprite for the character in VX.
+func TestOpCodeFX29(t *testing.T) {
+	Prep()
+	// Success Case, No overflow
+	myChip8.Pc = 512
+	myChip8.V[0] = 50
+	myChip8.Memory[512] = 0xF0
+	myChip8.Memory[513] = 0x29
+	myChip8.EmulateCycle()
+	if myChip8.Index != 250 { //50*5
+		t.Error("Index error")
+	}
+}
+
+//FX33 Least significant bit
+func TestOpCodeFX33(t *testing.T) {
+	Prep()
+	// Success Case, No overflow
+	myChip8.Pc = 512
+	myChip8.Index = 1024
+	myChip8.V[0] = 123
+	myChip8.Memory[512] = 0xF0
+	myChip8.Memory[513] = 0x33
+	myChip8.EmulateCycle()
+	if myChip8.Memory[myChip8.Index] != 1 { //50*5
+		t.Error("Index error")
+	}
+	if myChip8.Memory[myChip8.Index+1] != 2 { //50*5
+		t.Error("Index error")
+	}
+	if myChip8.Memory[myChip8.Index+2] != 3 { //50*5
+		t.Error("Index error")
+	}
+}
+
+// FX55	Stores V0 to VX (including VX) in memory starting at address I.[4]
+func TestOpCodeFX55(t *testing.T) {
+	Prep()
+	// Success Case, No overflow
+	myChip8.Pc = 512
+	myChip8.Index = 1024
+	myChip8.V[0] = 5
+	myChip8.V[1] = 6
+	myChip8.Memory[512] = 0xF2
+	myChip8.Memory[513] = 0x55
+	myChip8.EmulateCycle()
+	if myChip8.Memory[myChip8.Index-3] != 5 { //50*5
+		t.Error("Index error")
+	}
+	if myChip8.Memory[myChip8.Index-2] != 6 { //50*5
+		t.Error("Index error")
+	}
+}
+
+//FX65	Fills V0 to VX (including VX) with values from memory starting at address I.[4]
+func TestOpCodeFX65(t *testing.T) {
+	Prep()
+	// Success Case, No overflow
+	myChip8.Pc = 512
+	myChip8.Index = 1024
+	myChip8.Memory[1023] = 5
+	myChip8.Memory[1225] = 6
+	myChip8.Memory[512] = 0xF3
+	myChip8.Memory[513] = 0x65
+	myChip8.EmulateCycle()
+	if myChip8.V[0] != 5 { //50*5
+		t.Error("register error")
+	}
+	if myChip8.V[1] != 6 { //50*5
+		t.Error("register error")
+	}
+}
+
+//
+// MISC
+//
+//Bad Op Code
+func TestBadOpCode(t *testing.T) {
+	Prep()
+
+	myChip8.Memory[512] = 0x0f
+	myChip8.Memory[513] = 0xff
+	myChip8.EmulateCycle()
+
+	myChip8.Memory[514] = 0xff
+	myChip8.Memory[515] = 0xff
+	myChip8.EmulateCycle()
 }
