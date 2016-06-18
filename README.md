@@ -24,6 +24,6 @@ https://en.wikipedia.org/wiki/CHIP-8#Virtual_machine_description
 
 http://www.multigesture.net/articles/how-to-write-an-emulator-chip-8-interpreter/
 
-3 - That youtube freaks example in C. <200 lines of code. Freak.
+3 - Bisqwit - The youtube God that inspired me that I might be able to write an emulator.
 
-http://bisqwit.iki.fi/jutut/kuvat/programming_examples/chip8/chip8.cc
+https://www.youtube.com/user/Bisqwit
