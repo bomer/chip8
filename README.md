@@ -6,7 +6,7 @@ The GPU Rendering I wrote like 3 different times. Finally I settled on GoMobile 
 
 Also, OpenGL ES2 sucks and is not OpenGL at all. But made do eventually.
 
-![ScreenShot]https://raw.githubusercontent.com/bomer/chip8/master/brix.png
+![ScreenShot](https://raw.githubusercontent.com/bomer/chip8/master/brix.png)
 
 ##Run with
 
