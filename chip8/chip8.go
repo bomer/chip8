@@ -3,6 +3,7 @@ package chip8
 //Struct for the Main Chip8 System
 import (
 	"fmt"
+	"golang.org/x/mobile/asset"
 	"io/ioutil"
 	"math/rand"
 )
@@ -86,7 +87,9 @@ func (self *Chip8) Init() {
 
 //Read file in curent dir into Memory
 func (self *Chip8) LoadGame(filename string) {
-	rom, _ := ioutil.ReadFile(filename)
+	// rom, _ := ioutil.ReadFile(filename)
+	f, _ := asset.Open(filename)
+	rom, _ := ioutil.ReadAll(f)
 	rom_length := len(rom)
 	if rom_length > 0 {
 		// fmt.Printf("Rom Length = %d\n", rom_length)

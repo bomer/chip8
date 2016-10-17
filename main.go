@@ -202,9 +202,10 @@ func onPaint(glctx gl.Context, sz size.Event) {
 	}
 
 	//Draw over whole screen
+	//Changed to widthPT which gives the real edge of the screen instead of pixels.
 	tl := geom.Point{0, 0}
-	tr := geom.Point{geom.Pt(sz.WidthPx / 4), 0}
-	bl := geom.Point{0, geom.Pt(sz.HeightPx / 4)}
+	tr := geom.Point{geom.Pt(sz.WidthPt), 0}
+	bl := geom.Point{0, geom.Pt(sz.HeightPt)}
 	img.Upload()
 
 	// Set up the texture
