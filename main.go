@@ -47,7 +47,7 @@ func main() {
 	if len(argsWithoutProg) > 0 {
 		myChip8.LoadGame(argsWithoutProg[0])
 	} else {
-		myChip8.LoadGame("pong.c8")
+		myChip8.LoadGame("brix.c8")
 	}
 
 	//Run emulator on another go-routine
@@ -146,6 +146,23 @@ func main() {
 			case touch.Event:
 				touchX = e.X
 				touchY = e.Y
+
+				if int(touchX) < sz.WidthPx/2 { //Only for brix.
+					if e.Type == touch.TypeBegin {
+						myChip8.Key[0x4] = 1 //Q down,
+					} else if e.Type == touch.TypeEnd {
+						myChip8.Key[0x4] = 0 //Q down,
+					}
+					myChip8.Key[0x6] = 0 //E up
+				} else {
+					myChip8.Key[0x4] = 0 //Q up
+					if e.Type == touch.TypeBegin {
+						myChip8.Key[0x6] = 1 //E Down
+					} else if e.Type == touch.TypeEnd {
+						myChip8.Key[0x6] = 0 //Q down,
+					}
+
+				}
 			}
 		}
 	})
