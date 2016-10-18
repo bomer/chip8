@@ -43,12 +43,12 @@ func main() {
 	myChip8.Init()
 	// Doesnt exist yet
 
-	argsWithoutProg := os.Args[1:]
-	if len(argsWithoutProg) > 0 {
-		myChip8.LoadGame(argsWithoutProg[0])
-	} else {
-		myChip8.LoadGame("brix.c8")
-	}
+	// argsWithoutProg := os.Args[1:]
+	// if len(argsWithoutProg) > 0 {
+	// 	myChip8.LoadGame(argsWithoutProg[0])
+	// } else {
+	// 	myChip8.LoadGame("brix.c8")
+	// }
 
 	//Run emulator on another go-routine
 	//Else emulator runs to slow on main thread.
@@ -98,8 +98,28 @@ func main() {
 				// after this one is shown.
 				a.Send(paint.Event{})
 			case key.Event:
+				fmt.Printf("You pressed key - ", e.Code)
 				if e.Code == key.CodeEscape {
 					os.Exit(0)
+					break
+				}
+
+				//Swap games on mobile
+				if (e.Code == key.CodeVolumeUp || e.Code == key.CodeRightArrow) && e.Direction == key.DirRelease {
+					myChip8.GameIndex += 1
+					if myChip8.GameIndex > len(myChip8.Games)-1 {
+						myChip8.GameIndex = 0
+					}
+					myChip8.Init()
+					break
+				}
+
+				if (e.Code == key.CodeVolumeDown || e.Code == key.CodeLeftArrow) && e.Direction == key.DirRelease {
+					myChip8.GameIndex -= 1
+					if myChip8.GameIndex < 0 {
+						myChip8.GameIndex = len(myChip8.Games) - 1
+					}
+					myChip8.Init()
 					break
 				}
 				//Input for emu
@@ -147,21 +167,36 @@ func main() {
 				touchX = e.X
 				touchY = e.Y
 
-				if int(touchX) < sz.WidthPx/2 { //Only for brix.
+				if int(touchX) < sz.WidthPx/3 { //Left side
+					fmt.Printf("Touched - Q\n")
 					if e.Type == touch.TypeBegin {
 						myChip8.Key[0x4] = 1 //Q down,
 					} else if e.Type == touch.TypeEnd {
 						myChip8.Key[0x4] = 0 //Q down,
 					}
+					myChip8.Key[0x5] = 0 //E up
 					myChip8.Key[0x6] = 0 //E up
+					break
+				} else if int(touchX) < int(sz.WidthPx-sz.WidthPx/3) {
+					fmt.Printf("Touched - W\n")
+					if e.Type == touch.TypeBegin {
+						myChip8.Key[0x5] = 1 //W Down
+					} else if e.Type == touch.TypeEnd {
+						myChip8.Key[0x5] = 0 //W down,
+					}
+					myChip8.Key[0x4] = 0 //Q down,
+					myChip8.Key[0x6] = 0 //Q down,
+					break
 				} else {
-					myChip8.Key[0x4] = 0 //Q up
+					fmt.Printf("Touched - E\n")
 					if e.Type == touch.TypeBegin {
 						myChip8.Key[0x6] = 1 //E Down
 					} else if e.Type == touch.TypeEnd {
 						myChip8.Key[0x6] = 0 //Q down,
 					}
-
+					myChip8.Key[0x4] = 0 //Q down,
+					myChip8.Key[0x5] = 0 //Q down,
+					break
 				}
 			}
 		}

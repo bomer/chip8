@@ -13,16 +13,22 @@ license that can be found in the LICENSE file.
 	<!-- to talk to the host -->
 	<uses-permission android:name="android.permission.INTERNET" />
 	<application android:label="Chip8" android:debuggable="true">
-	<activity android:name="org.golang.app.GoNativeActivity"
-		android:label="Chip8"
-		android:configChanges="orientation|keyboardHidden"	
-		android:screenOrientation="landscape"
-    	android:theme="@android:style/Theme.NoTitleBar.Fullscreen">
-		<meta-data android:name="android.app.lib_name" android:value="Chip8" />
-		<intent-filter>
-			<action android:name="android.intent.action.MAIN" />
-			<category android:name="android.intent.category.LAUNCHER" />
-		</intent-filter>
-	</activity>
+		<receiver android:name=".RemoteControlReceiver">
+	    	<intent-filter>
+	        	<action android:name="android.intent.action.MEDIA_BUTTON" />
+	    	</intent-filter>
+		</receiver>
+		<activity android:name="org.golang.app.GoNativeActivity"
+			android:label="Chip8"
+			android:configChanges="orientation|keyboardHidden"	
+			android:screenOrientation="landscape"
+	    	android:theme="@android:style/Theme.NoTitleBar.Fullscreen">
+			<meta-data android:name="android.app.lib_name" android:value="Chip8" />
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN" />
+				<category android:name="android.intent.category.LAUNCHER" />
+			</intent-filter>
+
+		</activity>
 	</application>
 </manifest>

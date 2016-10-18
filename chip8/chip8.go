@@ -60,6 +60,10 @@ type Chip8 struct {
 
 	//Keyboard
 	Key [16]byte
+
+	//Games index/tracking
+	Games     []string
+	GameIndex int
 }
 
 // Initialize registers and Memory once
@@ -82,12 +86,16 @@ func (self *Chip8) Init() {
 	for i := 0; i < 64*32; i++ {
 		self.Gfx[i] = 0
 	}
+	self.Games = []string{"brix.c8", "tetris.c8", "ufo.c8", "invaders.c8"}
+	self.LoadGame("brix.c8")
 
 }
 
 //Read file in curent dir into Memory
 func (self *Chip8) LoadGame(filename string) {
 	// rom, _ := ioutil.ReadFile(filename)
+	filename = self.Games[self.GameIndex]
+	fmt.Printf("Loading Game %s", filename)
 	f, _ := asset.Open(filename)
 	rom, _ := ioutil.ReadAll(f)
 	rom_length := len(rom)
